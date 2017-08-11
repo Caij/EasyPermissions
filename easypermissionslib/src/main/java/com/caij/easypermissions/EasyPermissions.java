@@ -86,7 +86,7 @@ public class EasyPermissions {
     @SuppressLint("NewApi")
     public static void requestPermissions(@NonNull Object object, int requestCode,
                                           final PermissionCallback permissionCallback, @NonNull String... permissions) {
-        Activity activity = getActivity(object);
+        final Activity activity = getActivity(object);
 
         if (hasPermissions(activity, permissions)) {
             notifyAlreadyHasPermissions(requestCode, permissions, permissionCallback);
@@ -100,7 +100,7 @@ public class EasyPermissions {
             RequestPermissionActivity.setPermissionListener(new RequestPermissionActivity.PermissionListener() {
                 @Override
                 public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-                    onRequestPermissionsResultNotify(requestCode, permissions, grantResults, permissionCallback);
+                    onRequestPermissionsResultNotify(activity, requestCode, permissions, grantResults, permissionCallback);
                 }
             });
             activity.startActivity(intent);
@@ -121,7 +121,7 @@ public class EasyPermissions {
      * @param grantResults grantResults argument to permission result callback.
      * @param receivers    an array of objects that have a method annotated with {@link
      */
-    private static void onRequestPermissionsResultNotify(int requestCode,
+    private static void onRequestPermissionsResultNotify(Context context, int requestCode,
                                                          @NonNull String[] permissions,
                                                          @NonNull int[] grantResults,
                                                          @NonNull PermissionCallback... receivers) {
@@ -131,7 +131,7 @@ public class EasyPermissions {
         for (int i = 0; i < permissions.length; i++) {
             String perm = permissions[i];
 
-            tagFirstRequest(getActivity(receivers[0]), perm);
+            tagFirstRequest(context, perm);
 
             if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
                 granted.add(perm);
