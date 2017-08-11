@@ -39,15 +39,6 @@ import java.util.List;
  */
 public class EasyPermissions {
 
-    public interface PermissionCallback {
-
-        void onPermissionsGranted(int requestCode, List<String> permissions);
-
-        void onPermissionsDenied(int requestCode, List<String> permissions);
-
-        void onNeverAskAgainPermission(int requestCode, List<String> permissions);
-    }
-
     private static final String TAG = "EasyPermissions";
     private static final String DIALOG_TAG = "RationaleDialogFragmentCompat";
     private static final String SP_FILE_NAME = EasyPermissions.class.getName() + ".permissions";
@@ -221,9 +212,9 @@ public class EasyPermissions {
         return activity;
     }
 
-    private static boolean isFirstRequest(Context context, String perm) {
+    private static boolean isFirstRequest(Context context, String permission) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(SP_FILE_NAME, Context.MODE_PRIVATE);
-        return sharedPreferences.getBoolean(perm, true);
+        return sharedPreferences.getBoolean(permission, true);
     }
 
     private static void tagFirstRequest(Context context, String perm) {
