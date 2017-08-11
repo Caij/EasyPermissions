@@ -54,6 +54,11 @@ public class RequestPermissionActivity extends Activity {
         this.finish();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        sPermissionListener = null;
+    }
 
     interface PermissionListener {
         void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults);

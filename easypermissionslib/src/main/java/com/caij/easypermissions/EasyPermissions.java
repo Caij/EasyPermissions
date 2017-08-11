@@ -39,13 +39,13 @@ import java.util.List;
  */
 public class EasyPermissions {
 
-    public interface PermissionCallbacks {
+    public interface PermissionCallback {
 
-        void onPermissionsGranted(int requestCode, List<String> perms);
+        void onPermissionsGranted(int requestCode, List<String> permissions);
 
-        void onPermissionsDenied(int requestCode, List<String> perms);
+        void onPermissionsDenied(int requestCode, List<String> permissions);
 
-        void onNeverAskAgainPermission(int requestCode, List<String> perms);
+        void onNeverAskAgainPermission(int requestCode, List<String> permissions);
     }
 
     private static final String TAG = "EasyPermissions";
@@ -56,12 +56,12 @@ public class EasyPermissions {
      * Check if the calling context has a set of permissions.
      *
      * @param context the calling context.
-     * @param perms   one ore more permissions, such as {@link Manifest.permission#CAMERA}.
+     * @param permissions   one ore more permissions, such as {@link Manifest.permission#CAMERA}.
      * @return true if all permissions are already granted, false if at least one permission is not
      * yet granted.
      * @see Manifest.permission
      */
-    public static boolean hasPermissions(@NonNull Context context, @NonNull String... perms) {
+    public static boolean hasPermissions(@NonNull Context context, @NonNull String... permissions) {
         // Always return true for SDK < M, let the system deal with the permissions
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             Log.w(TAG, "hasPermissions: API version < M, returning true by default");
@@ -70,10 +70,10 @@ public class EasyPermissions {
             return true;
         }
 
-        for (String perm : perms) {
-            boolean hasPerm = (ContextCompat.checkSelfPermission(context, perm) ==
+        for (String permission : permissions) {
+            boolean hasPermission = (ContextCompat.checkSelfPermission(context, permission) ==
                     PackageManager.PERMISSION_GRANTED);
-            if (!hasPerm) {
+            if (!hasPermission) {
                 return false;
             }
         }
@@ -89,26 +89,27 @@ public class EasyPermissions {
      *                       it extends from {@link FragmentActivity}.
      *                       will be displayed if the user rejects the request the first time.
      * @param requestCode    request code to track this request, must be < 256.
-     * @param perms          a set of permissions to be requested.
+     * @param permissions          a set of permissions to be requested.
      * @see Manifest.permission
      */
     @SuppressLint("NewApi")
-    public static void requestPermissions(@NonNull Object object,
-                                          int requestCode, final PermissionCallbacks permissionCallbacks, @NonNull String... perms) {
-        if (hasPermissions(getActivity(object), perms)) {
-            notifyAlreadyHasPermissions(requestCode, perms, permissionCallbacks);
+    public static void requestPermissions(@NonNull Object object, int requestCode,
+                                          final PermissionCallback permissionCallback, @NonNull String... permissions) {
+        Activity activity = getActivity(object);
+
+        if (hasPermissions(activity, permissions)) {
+            notifyAlreadyHasPermissions(requestCode, permissions, permissionCallback);
             return;
         }
 
-        if (hasNeverAskAgainPermission(object, perms)) {
-            notifyNeverAskAgainPermission(permissionCallbacks, requestCode, perms);
+        if (hasNeverAskAgainPermission(activity, permissions)) {
+            notifyNeverAskAgainPermission(permissionCallback, requestCode, permissions);
         } else {
-            Activity activity = getActivity(object);
-            Intent intent = RequestPermissionActivity.newIntent(getActivity(object), perms, requestCode);
+            Intent intent = RequestPermissionActivity.newIntent(activity, permissions, requestCode);
             RequestPermissionActivity.setPermissionListener(new RequestPermissionActivity.PermissionListener() {
                 @Override
                 public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-                    onRequestPermissionsResultNotify(requestCode, permissions, grantResults, permissionCallbacks);
+                    onRequestPermissionsResultNotify(requestCode, permissions, grantResults, permissionCallback);
                 }
             });
             activity.startActivity(intent);
@@ -122,7 +123,7 @@ public class EasyPermissions {
      * String[], int[])} method.
      * <p>
      * If any permissions were granted or denied, the {@code object} will receive the appropriate
-     * callbacks through {@link PermissionCallbacks} and methods annotated with {@link
+     * callbacks through {@link PermissionCallback} and methods annotated with {@link
      *
      * @param requestCode  requestCode argument to permission result callback.
      * @param permissions  permissions argument to permission result callback.
@@ -132,10 +133,10 @@ public class EasyPermissions {
     private static void onRequestPermissionsResultNotify(int requestCode,
                                                          @NonNull String[] permissions,
                                                          @NonNull int[] grantResults,
-                                                         @NonNull Object... receivers) {
+                                                         @NonNull PermissionCallback... receivers) {
         // Make a collection of granted and denied permissions from the request.
-        List<String> granted = new ArrayList<>();
-        List<String> denied = new ArrayList<>();
+        List<String> granted = new ArrayList<>(permissions.length);
+        List<String> denied = new ArrayList<>(permissions.length);
         for (int i = 0; i < permissions.length; i++) {
             String perm = permissions[i];
 
@@ -149,77 +150,60 @@ public class EasyPermissions {
         }
 
         // iterate through all receivers
-        for (Object object : receivers) {
+        for (PermissionCallback permissionCallback : receivers) {
             // Report granted permissions, if any.
             if (!granted.isEmpty()) {
-                if (object instanceof PermissionCallbacks) {
-                    ((PermissionCallbacks) object).onPermissionsGranted(requestCode, granted);
-                }
+                   permissionCallback.onPermissionsGranted(requestCode, granted);
             }
 
             // Report denied permissions, if any.
             if (!denied.isEmpty()) {
-                if (object instanceof PermissionCallbacks) {
-                    ((PermissionCallbacks) object).onPermissionsDenied(requestCode, denied);
-                }
+                permissionCallback.onPermissionsDenied(requestCode, denied);
             }
         }
     }
 
     private static void onNeverAskAgainPermission(int requestCode,
                                                   @NonNull String[] permissions,
-                                                  @NonNull PermissionCallbacks... receivers) {
-        for (PermissionCallbacks object : receivers) {
-            object.onNeverAskAgainPermission(requestCode, Arrays.asList(permissions));
+                                                  @NonNull PermissionCallback... receivers) {
+        for (PermissionCallback permissionCallback : receivers) {
+            permissionCallback.onNeverAskAgainPermission(requestCode, Arrays.asList(permissions));
         }
     }
 
     private static void notifyAlreadyHasPermissions(int requestCode,
-                                                    @NonNull String[] permissions, @NonNull PermissionCallbacks... receivers) {
-        for (PermissionCallbacks object : receivers) {
-            object.onPermissionsGranted(requestCode, Arrays.asList(permissions));
+                                                    @NonNull String[] permissions, @NonNull PermissionCallback... receivers) {
+        for (PermissionCallback permissionCallback : receivers) {
+            permissionCallback.onPermissionsGranted(requestCode, Arrays.asList(permissions));
         }
     }
 
-    private static void notifyNeverAskAgainPermission(PermissionCallbacks permissionCallbacks,
+    private static void notifyNeverAskAgainPermission(PermissionCallback permissionCallback,
                                                       int requestCode,
-                                                      @NonNull String[] perms) {
-        onNeverAskAgainPermission(requestCode, perms, permissionCallbacks);
+                                                      @NonNull String[] permissions) {
+        onNeverAskAgainPermission(requestCode, permissions, permissionCallback);
     }
 
     /**
      * @param
-     * @return true if the user has previously denied any of the {@code perms} and we should show a
+     * @return true if the user has previously denied any of the {@code permissions} and we should show a
      * rationale, false otherwise.
      */
-    private static boolean hasNeverAskAgainPermission(@NonNull Object object, @NonNull String[] permission) {
+    private static boolean hasNeverAskAgainPermission(@NonNull Activity activity, @NonNull String[] permissions) {
         boolean isPermissionNotPromptedAgain = false;
-        for (String perm : permission) {
-            boolean isPermissionNotPromptedPerm = !shouldShowRequestPermissionRationale(object, perm)
-                    && !isFirstRequest(getActivity(object), perm)
-                    && !hasPermissions(getActivity(object), perm);
+        for (String permission : permissions) {
+            boolean isPermissionNotPromptedPerm = !shouldShowRequestPermissionRationale(activity, permission)
+                    && !isFirstRequest(activity, permission)
+                    && !hasPermissions(activity, permission);
             isPermissionNotPromptedAgain = isPermissionNotPromptedAgain
                     || isPermissionNotPromptedPerm;
         }
         return isPermissionNotPromptedAgain;
     }
 
-    private static boolean shouldShowRequestPermissionRationale(@NonNull Object object,
-                                                                @NonNull String perm) {
-        if (object instanceof Activity) {
-            return ActivityCompat.shouldShowRequestPermissionRationale((Activity) object, perm);
-        } else if (object instanceof Fragment) {
-            return ((Fragment) object).shouldShowRequestPermissionRationale(perm);
-        } else if (object instanceof android.app.Fragment) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                return ((android.app.Fragment) object).shouldShowRequestPermissionRationale(perm);
-            } else {
-                throw new IllegalArgumentException(
-                        "Target SDK needs to be greater than 23 if caller is android.app.Fragment");
-            }
-        } else {
-            throw new IllegalArgumentException("Object was neither an Activity nor a Fragment.");
-        }
+    private static boolean shouldShowRequestPermissionRationale(@NonNull Activity activity,
+                                                                @NonNull String permission) {
+        return ActivityCompat.shouldShowRequestPermissionRationale(activity, permission);
     }
 
 

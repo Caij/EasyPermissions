@@ -10,7 +10,7 @@ import com.caij.easypermissions.EasyPermissions;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks {
+public class MainActivity extends AppCompatActivity implements EasyPermissions.PermissionCallback {
 
     String[] perms = new String[]{Manifest.permission.CAMERA};
 
