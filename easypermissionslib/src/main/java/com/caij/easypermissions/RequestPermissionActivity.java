@@ -34,6 +34,7 @@ public class RequestPermissionActivity extends Activity {
         int requestCode = intent.getIntExtra(REQUEST_CODE, 1);
         if(permissions == null) {
             finish();
+            overridePendingTransition(0, 0);
         } else if(sPermissionListener != null) {
             requestPermissions(permissions, requestCode);
         }
@@ -52,6 +53,7 @@ public class RequestPermissionActivity extends Activity {
 
         sPermissionListener = null;
         this.finish();
+        overridePendingTransition(0, 0);
     }
 
     @Override
