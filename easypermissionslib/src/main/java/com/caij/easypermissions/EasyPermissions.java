@@ -28,6 +28,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
+
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -40,8 +42,9 @@ import java.util.List;
 public class EasyPermissions {
 
     private static final String TAG = "EasyPermissions";
-    private static final String DIALOG_TAG = "RationaleDialogFragmentCompat";
     private static final String SP_FILE_NAME = EasyPermissions.class.getName() + ".permissions";
+
+    private static final String FRAGMENT_TAG = "permission_fragment_tag";
 
     /**
      * Check if the calling context has a set of permissions.
@@ -72,22 +75,24 @@ public class EasyPermissions {
         return true;
     }
 
+    public static void requestPermissions(@NonNull Fragment fragment, int requestCode,
+                                          final PermissionCallback permissionCallback, @NonNull String... permissions) {
+        if (fragment.getActivity() != null) {
+            requestPermissions(fragment.getActivity(), requestCode, permissionCallback, permissions);
+        }
+    }
+
     /**
-     * Request a set of permissions, showing rationale if the system requests it.
+     *  Request permissions
      *
-     *                       ActivityCompat.OnRequestPermissionsResultCallback} or override {@link
-     *                       FragmentActivity#onRequestPermissionsResult(int, String[], int[])} if
-     *                       it extends from {@link FragmentActivity}.
-     *                       will be displayed if the user rejects the request the first time.
-     * @param requestCode    request code to track this request, must be < 256.
-     * @param permissions          a set of permissions to be requested.
-     * @see Manifest.permission
+     * @param activity
+     * @param requestCode request code to track this request, must be < 256.
+     * @param permissionCallback request permission callback
+     * @param permissions   a set of permissions to be requested.
      */
     @SuppressLint("NewApi")
-    public static void requestPermissions(@NonNull Object object, int requestCode,
+    public static void requestPermissions(@NonNull FragmentActivity activity, int requestCode,
                                           final PermissionCallback permissionCallback, @NonNull String... permissions) {
-        final Activity activity = getActivity(object);
-
         if (hasPermissions(activity, permissions)) {
             notifyAlreadyHasPermissions(requestCode, permissions, permissionCallback);
             return;
@@ -96,31 +101,31 @@ public class EasyPermissions {
         if (hasNeverAskAgainPermission(activity, permissions)) {
             notifyNeverAskAgainPermission(permissionCallback, requestCode, permissions);
         } else {
-            Intent intent = RequestPermissionActivity.newIntent(activity, permissions, requestCode);
-            RequestPermissionActivity.setPermissionListener(new RequestPermissionActivity.PermissionListener() {
-                @Override
-                public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-                    onRequestPermissionsResultNotify(activity, requestCode, permissions, grantResults, permissionCallback);
-                }
-            });
-            activity.startActivity(intent);
+            requestPermissions(activity, activity.getSupportFragmentManager(), requestCode, permissionCallback, permissions);
+        }
+    }
+
+    private static void requestPermissions(final Context context, @NonNull FragmentManager fragmentManager, int requestCode,
+                                           final PermissionCallback permissionCallback, @NonNull String... permissions) {
+        Fragment fragment = fragmentManager.findFragmentByTag(FRAGMENT_TAG);
+        PermissionListener permissionListener = new PermissionListener() {
+            @Override
+            public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+                onRequestPermissionsResultNotify(context, requestCode, permissions, grantResults, permissionCallback);
+            }
+        };
+        if (fragment instanceof PermissionFragment) {
+            PermissionFragment permissionFragment = (PermissionFragment) fragment;
+            permissionFragment.setArguments(PermissionFragment.newArgs(permissions, requestCode));
+            permissionFragment.setPermissionListener(permissionListener);
+            permissionFragment.requestPermissions();
+        } else {
+            PermissionFragment permissionFragment = PermissionFragment.newInstance(permissions, requestCode);
+            fragmentManager.beginTransaction().add(permissionFragment, FRAGMENT_TAG).commit();
         }
     }
 
 
-    /**
-     * Handle the result of a permission request, should be called from the calling {@link
-     * Activity}'s {@link ActivityCompat.OnRequestPermissionsResultCallback#onRequestPermissionsResult(int,
-     * String[], int[])} method.
-     * <p>
-     * If any permissions were granted or denied, the {@code object} will receive the appropriate
-     * callbacks through {@link PermissionCallback} and methods annotated with {@link
-     *
-     * @param requestCode  requestCode argument to permission result callback.
-     * @param permissions  permissions argument to permission result callback.
-     * @param grantResults grantResults argument to permission result callback.
-     * @param receivers    an array of objects that have a method annotated with {@link
-     */
     private static void onRequestPermissionsResultNotify(Context context, int requestCode,
                                                          @NonNull String[] permissions,
                                                          @NonNull int[] grantResults,
@@ -175,11 +180,6 @@ public class EasyPermissions {
         onNeverAskAgainPermission(requestCode, permissions, permissionCallback);
     }
 
-    /**
-     * @param
-     * @return true if the user has previously denied any of the {@code permissions} and we should show a
-     * rationale, false otherwise.
-     */
     private static boolean hasNeverAskAgainPermission(@NonNull Activity activity, @NonNull String[] permissions) {
         boolean isPermissionNotPromptedAgain = false;
         for (String permission : permissions) {
@@ -195,21 +195,6 @@ public class EasyPermissions {
     private static boolean shouldShowRequestPermissionRationale(@NonNull Activity activity,
                                                                 @NonNull String permission) {
         return ActivityCompat.shouldShowRequestPermissionRationale(activity, permission);
-    }
-
-
-    private static Activity getActivity(Object object) {
-        Activity activity;
-        if (object instanceof Activity) {
-            activity = (Activity) object;
-        } else if (object instanceof Fragment) {
-            activity = ((Fragment) object).getActivity();
-        } else if (object instanceof android.app.Fragment) {
-            activity = ((android.app.Fragment) object).getActivity();
-        } else {
-            throw new IllegalArgumentException("Object was neither Activity or Fragment.");
-        }
-        return activity;
     }
 
     private static boolean isFirstRequest(Context context, String permission) {

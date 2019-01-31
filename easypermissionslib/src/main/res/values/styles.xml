@@ -1,10 +1,3 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="RequestPermissionActivity">
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:statusBarColor" tools:targetApi="lollipop">@android:color/transparent</item>
-    </style>
-
 </resources>

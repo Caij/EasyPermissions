@@ -23,7 +23,22 @@ public class MainActivity extends AppCompatActivity implements PermissionCallbac
         findViewById(R.id.tv).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EasyPermissions.requestPermissions(MainActivity.this, 100, MainActivity.this, perms);
+                EasyPermissions.requestPermissions(MainActivity.this, 100, new PermissionCallback() {
+                    @Override
+                    public void onPermissionsGranted(int requestCode, List<String> permissions) {
+
+                    }
+
+                    @Override
+                    public void onPermissionsDenied(int requestCode, List<String> permissions) {
+
+                    }
+
+                    @Override
+                    public void onNeverAskAgainPermission(int requestCode, List<String> permissions) {
+
+                    }
+                }, perms);
             }
         });
     }

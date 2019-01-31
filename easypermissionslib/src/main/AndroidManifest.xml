@@ -5,9 +5,6 @@
     <application android:allowBackup="true"
         android:supportsRtl="true">
 
-        <activity android:name="com.caij.easypermissions.RequestPermissionActivity"
-            android:theme="@style/RequestPermissionActivity"
-            android:excludeFromRecents="true"/>
 
     </application>
 
