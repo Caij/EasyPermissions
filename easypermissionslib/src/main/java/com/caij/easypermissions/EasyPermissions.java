@@ -121,6 +121,7 @@ public class EasyPermissions {
             permissionFragment.requestPermissions();
         } else {
             PermissionFragment permissionFragment = PermissionFragment.newInstance(permissions, requestCode);
+            permissionFragment.setPermissionListener(permissionListener);
             fragmentManager.beginTransaction().add(permissionFragment, FRAGMENT_TAG).commit();
         }
     }
