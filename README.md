@@ -1,6 +1,6 @@
 # EasyPermissions
 
-[![](https://jitpack.io/v/tbruyelle/EasyPermissions.svg)](https://jitpack.io/#tbruyelle/EasyPermissions)
+[![](https://jitpack.io/v/Caij/EasyPermissions.svg)](https://jitpack.io/#Caij/EasyPermissions)
 
 Android M permission model.
 
