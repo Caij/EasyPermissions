@@ -2,7 +2,7 @@
 
 [![](https://jitpack.io/v/tbruyelle/EasyPermissions.svg)](https://jitpack.io/#tbruyelle/EasyPermissions)
 
-This library allows the usage of RxJava with the new Android M permission model.
+Android M permission model.
 
 ## Setup
 
