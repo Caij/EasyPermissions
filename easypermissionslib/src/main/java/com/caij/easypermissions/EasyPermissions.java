@@ -122,7 +122,7 @@ public class EasyPermissions {
         } else {
             PermissionFragment permissionFragment = PermissionFragment.newInstance(permissions, requestCode);
             permissionFragment.setPermissionListener(permissionListener);
-            fragmentManager.beginTransaction().add(permissionFragment, FRAGMENT_TAG).commit();
+            fragmentManager.beginTransaction().add(permissionFragment, FRAGMENT_TAG).commitAllowingStateLoss();
         }
     }
 
