@@ -1,3 +1,5 @@
+# Deprecated
+
 # EasyPermissions
 
 [![](https://jitpack.io/v/Caij/EasyPermissions.svg)](https://jitpack.io/#Caij/EasyPermissions)
