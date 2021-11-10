@@ -17,29 +17,26 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.Caij:EasyPermissions:2.0.0'
+    implementation 'com.github.Caij:EasyPermissions:last.release.version'
 }
 ```
 
 ## Usage
 
 ```java
- EasyPermissions.requestPermissions(MainActivity.this, 100, new PermissionCallback() {
-                    @Override
-                    public void onPermissionsGranted(int requestCode, List<String> permissions) {
-
-                    }
-
-                    @Override
-                    public void onPermissionsDenied(int requestCode, List<String> permissions) {
-
-                    }
-
-                    @Override
-                    public void onNeverAskAgainPermission(int requestCode, List<String> permissions) {
-
-                    }
-                }, perms);
+ Permissions.with(this)
+            .permission(perms)
+            .showReasonBeforeRequest()
+            .request(new PermissionListener() {
+                 @Override
+                 public void onRequestPermissionsResult(boolean allGranted, @NonNull List<String> grantResults, @NonNull List<String> deniedResults) {
+                     if (allGranted) {
+                         Toast.makeText(MainActivity.this, "同意", Toast.LENGTH_LONG).show();
+                     } else {
+                         Toast.makeText(MainActivity.this, "拒绝", Toast.LENGTH_LONG).show();
+                     }
+                 }
+             });
 ```
 
 # License

@@ -5,14 +5,15 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
-import com.caij.easypermissions.EasyPermissions;
-import com.caij.easypermissions.PermissionCallback;
+import com.caij.easypermissions.Permissions;
+import com.caij.easypermissions.PermissionListener;
 
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-public class MainActivity extends AppCompatActivity implements PermissionCallback {
+public class MainActivity extends AppCompatActivity {
 
     String[] perms = new String[]{Manifest.permission.CAMERA};
 
@@ -23,25 +24,25 @@ public class MainActivity extends AppCompatActivity implements PermissionCallbac
         findViewById(R.id.tv).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EasyPermissions.requestPermissions(MainActivity.this, 100, MainActivity.this, perms);
+                request();
             }
         });
     }
 
-
-
-    @Override
-    public void onPermissionsGranted(int requestCode, List<String> perms) {
-        Toast.makeText(this, "onPermissionsGranted", Toast.LENGTH_LONG).show();
+    private void request() {
+        Permissions.with(this)
+                .permission(perms)
+                .showReasonBeforeRequest()
+                .request(new PermissionListener() {
+                    @Override
+                    public void onRequestPermissionsResult(boolean allGranted, @NonNull List<String> grantResults, @NonNull List<String> deniedResults) {
+                        if (allGranted) {
+                            Toast.makeText(MainActivity.this, "同意", Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "拒绝", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
     }
 
-    @Override
-    public void onPermissionsDenied(int requestCode, List<String> perms) {
-        Toast.makeText(this, "onPermissionsDenied", Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onNeverAskAgainPermission(int requestCode, List<String> perms) {
-        Toast.makeText(this, "onNeverAskAgainPermission", Toast.LENGTH_LONG).show();
-    }
 }

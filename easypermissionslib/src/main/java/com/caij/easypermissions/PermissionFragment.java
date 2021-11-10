@@ -1,7 +1,9 @@
 package com.caij.easypermissions;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
+import android.provider.Settings;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -9,10 +11,11 @@ import androidx.fragment.app.Fragment;
 
 public class PermissionFragment extends Fragment {
 
-    private PermissionListener permissionListener;
+    private PermissionManager permissionManager;
 
     private static final String PERMISSION_KEYS = "KEY_INPUT_PERMISSIONS";
     private static final String REQUEST_CODE = "request_code";
+    private int requestCode;
 
     static PermissionFragment newInstance(String[] permissions, int requestCode) {
         PermissionFragment fragment = new PermissionFragment();
@@ -30,17 +33,32 @@ public class PermissionFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        requestPermissions();
+        if (permissionManager != null) {
+            Bundle bundle = getArguments();
+            if (bundle != null) {
+                int requestCode = bundle.getInt(REQUEST_CODE, -1);
+                if (requestCode == Permissions.REQUEST_CODE) {
+                    requestPermissions();
+                }
+                if (requestCode == Permissions.TO_SETTING) {
+                    forwardToSettings();
+                }
+            }
+        } else {
+            if (getActivity() != null) {
+                getActivity().getSupportFragmentManager().beginTransaction().remove(this).commitAllowingStateLoss();
+            }
+        }
     }
 
-    void setPermissionListener(PermissionListener permissionListener) {
-        this.permissionListener = permissionListener;
+    public void setPermissionManager(PermissionManager permissionManager) {
+        this.permissionManager = permissionManager;
     }
 
     void requestPermissions() {
         if (isAdded() && getActivity() != null && !isDetached()) {
             String[] permissions = getArguments().getStringArray(PERMISSION_KEYS);
-            int requestCode = getArguments().getInt(REQUEST_CODE, 1);
+            requestCode = getArguments().getInt(REQUEST_CODE, 1);
             if (permissions != null) {
                 requestPermissions(permissions, requestCode);
             }
@@ -50,18 +68,34 @@ public class PermissionFragment extends Fragment {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (permissionListener != null) {
-            permissionListener.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (permissionManager != null) {
+            if (requestCode == this.requestCode) {
+                permissionManager.onRequestPermissionsResult(permissions, grantResults);
+            }
         }
-        if (getActivity() != null) {
-            getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == Permissions.TO_SETTING) {
+            permissionManager.onSettingUpdate();
+        }
+    }
+
+    void forwardToSettings() {
+        if (isAdded() && getActivity() != null && !isDetached()) {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            Uri uri = Uri.fromParts("package", getActivity().getPackageName(), null);
+            intent.setData(uri);
+            startActivityForResult(intent, Permissions.TO_SETTING);
         }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        permissionListener = null;
+        permissionManager = null;
     }
 
 }

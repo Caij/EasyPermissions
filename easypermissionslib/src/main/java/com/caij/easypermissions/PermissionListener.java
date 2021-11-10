@@ -2,7 +2,9 @@ package com.caij.easypermissions;
 
 import androidx.annotation.NonNull;
 
+import java.util.List;
+
 public interface PermissionListener {
 
-    void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults);
+    void onRequestPermissionsResult(boolean allGranted, @NonNull List<String> grantResults, @NonNull List<String> deniedResults);
 }
