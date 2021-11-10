@@ -1,10 +1,8 @@
-# Deprecated
-
 # EasyPermissions
 
 [![](https://jitpack.io/v/Caij/EasyPermissions.svg)](https://jitpack.io/#Caij/EasyPermissions)
 
-Android M permission model.
+makes Android runtime permission request extremely easy
 
 ## Setup
 
