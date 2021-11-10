@@ -115,6 +115,11 @@ public class Permissions {
         return this;
     }
 
+    public Permissions setPermissionDialog(PermissionDialog permissionDialog) {
+        this.permissionDialog = permissionDialog;
+        return this;
+    }
+
     public void request(PermissionListener permissionListener) {
         this.permissionListener = permissionListener;
 
