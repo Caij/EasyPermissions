@@ -8,6 +8,7 @@ import android.content.res.ColorStateList
 import android.content.res.TypedArray
 import android.os.Build
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -22,14 +23,38 @@ class DefaultPermissionDialog : PermissionDialog {
         okClickListener: DialogInterface.OnClickListener,
         cancelClickListener: DialogInterface.OnClickListener
     ) {
+        val dialog = AlertDialog.Builder(fragmentActivity)
+            .setView(createContentView(fragmentActivity, permissions))
+            .setPositiveButton("允许", okClickListener)
+            .setNegativeButton("拒绝", cancelClickListener)
+            .create()
+        dialog.setCanceledOnTouchOutside(false)
+        dialog.show()
+    }
+
+    override fun showSetting(
+        fragmentActivity: FragmentActivity,
+        permissions: Array<String>,
+        okClickListener: DialogInterface.OnClickListener,
+        cancelClickListener: DialogInterface.OnClickListener
+    ) {
+        val dialog = AlertDialog.Builder(fragmentActivity)
+            .setView(createContentView(fragmentActivity, permissions))
+            .setPositiveButton("去设置", okClickListener)
+            .setNegativeButton("拒绝", cancelClickListener)
+            .create()
+        dialog.setCanceledOnTouchOutside(false)
+        dialog.show()
+    }
+
+    private fun createContentView(fragmentActivity: FragmentActivity, permissions: Array<String>): View {
         val pm: PackageManager = fragmentActivity.packageManager
         val contentView = LayoutInflater.from(fragmentActivity)
             .inflate(R.layout.permission_default_dialog_layout, null)
         val linearLayout =
             contentView.findViewById<LinearLayout>(R.id.permissionsLayout)
         val tvMessage = contentView.findViewById<TextView>(R.id.messageText)
-        val appLabel = pm.getApplicationLabel(fragmentActivity.applicationInfo)
-        tvMessage.text = "$appLabel 需要下述权限才能继续下面的功能."
+        tvMessage.text = "你请求的权限已被拒绝并不再提示，请到设置中手动开启"
         val accentColor = getAccentColor(fragmentActivity)
         for (permission in permissions) {
             val view = LayoutInflater.from(fragmentActivity)
@@ -68,28 +93,7 @@ class DefaultPermissionDialog : PermissionDialog {
             }
             linearLayout.addView(view)
         }
-        val dialog = AlertDialog.Builder(fragmentActivity)
-            .setView(contentView)
-            .setPositiveButton("允许", okClickListener)
-            .setNegativeButton("拒绝", cancelClickListener)
-            .create()
-        dialog.setCanceledOnTouchOutside(false)
-        dialog.show()
-    }
-
-    override fun showSetting(
-        fragmentActivity: FragmentActivity,
-        permissions: Array<String>,
-        okClickListener: DialogInterface.OnClickListener,
-        cancelClickListener: DialogInterface.OnClickListener
-    ) {
-        val dialog = AlertDialog.Builder(fragmentActivity)
-            .setMessage("你请求的权限已被拒绝并不再提示，请到设置中手动开启")
-            .setPositiveButton("去设置", okClickListener)
-            .setNegativeButton("拒绝", cancelClickListener)
-            .create()
-        dialog.setCanceledOnTouchOutside(false)
-        dialog.show()
+        return contentView;
     }
 
     private fun getAccentColor(activity: Activity): Int {
