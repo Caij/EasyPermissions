@@ -38,20 +38,18 @@ public class Permissions {
     private static final String TAG = "EasyPermissions";
 
 
-    public static final int SHOW_REASON_TYPE_NONE = 1;
-    public static final int SHOW_REASON_TYPE_BEFORE = 2;
-    public static final int SHOW_REASON_TYPE_AFTER = 3;
+    static final int SHOW_REASON_TYPE_NONE = 1;
+    static final int SHOW_REASON_TYPE_BEFORE = 2;
+    static final int SHOW_REASON_TYPE_AFTER = 3;
 
-    public static final int REQUEST_CODE = 1013;
-    public static final int TO_SETTING = 1011;
+    static final int REQUEST_PERMISSION_CODE = 1013;
+    static final int REQUEST_SETTING = 1011;
 
-    public String[] permissions;
-    public int showReasonType = SHOW_REASON_TYPE_NONE;
-    public PermissionListener permissionListener;
-
-    public final FragmentActivity fragmentActivity;
-
-    public PermissionDialog permissionDialog;
+    String[] permissions;
+    int showReasonType = SHOW_REASON_TYPE_NONE;
+    PermissionListener permissionListener;
+    final FragmentActivity fragmentActivity;
+    PermissionDialog permissionDialog;
 
     public Permissions(FragmentActivity fragmentActivity) {
         this.fragmentActivity = fragmentActivity;

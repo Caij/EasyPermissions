@@ -37,10 +37,10 @@ public class PermissionFragment extends Fragment {
             Bundle bundle = getArguments();
             if (bundle != null) {
                 int requestCode = bundle.getInt(REQUEST_CODE, -1);
-                if (requestCode == Permissions.REQUEST_CODE) {
+                if (requestCode == Permissions.REQUEST_PERMISSION_CODE) {
                     requestPermissions();
                 }
-                if (requestCode == Permissions.TO_SETTING) {
+                if (requestCode == Permissions.REQUEST_SETTING) {
                     forwardToSettings();
                 }
             }
@@ -78,7 +78,7 @@ public class PermissionFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == Permissions.TO_SETTING) {
+        if (requestCode == Permissions.REQUEST_SETTING) {
             permissionManager.onSettingUpdate();
         }
     }
@@ -88,7 +88,7 @@ public class PermissionFragment extends Fragment {
             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             Uri uri = Uri.fromParts("package", getActivity().getPackageName(), null);
             intent.setData(uri);
-            startActivityForResult(intent, Permissions.TO_SETTING);
+            startActivityForResult(intent, Permissions.REQUEST_SETTING);
         }
     }
 

@@ -60,12 +60,12 @@ class PermissionManager(permissions: Permissions) {
         fragment =
             fragmentManager.findFragmentByTag(FRAGMENT_TAG)
         if (fragment is PermissionFragment) {
-            (fragment as PermissionFragment).arguments = PermissionFragment.newArgs(permissions, Permissions.TO_SETTING)
+            (fragment as PermissionFragment).arguments = PermissionFragment.newArgs(permissions, Permissions.REQUEST_SETTING)
             (fragment as PermissionFragment).setPermissionManager(this)
             (fragment as PermissionFragment).forwardToSettings()
         } else {
             val permissionFragment =
-                PermissionFragment.newInstance(permissions, Permissions.TO_SETTING)
+                PermissionFragment.newInstance(permissions, Permissions.REQUEST_SETTING)
             permissionFragment.setPermissionManager(this)
             fragmentManager.beginTransaction().add(permissionFragment, FRAGMENT_TAG)
                 .commitAllowingStateLoss()
@@ -90,12 +90,12 @@ class PermissionManager(permissions: Permissions) {
 
         fragment = fragmentManager.findFragmentByTag(FRAGMENT_TAG)
         if (fragment is PermissionFragment) {
-            (fragment as PermissionFragment).arguments = PermissionFragment.newArgs(permissions, Permissions.REQUEST_CODE)
+            (fragment as PermissionFragment).arguments = PermissionFragment.newArgs(permissions, Permissions.REQUEST_PERMISSION_CODE)
             (fragment as PermissionFragment).setPermissionManager(this)
             (fragment as PermissionFragment).requestPermissions()
         } else {
             val permissionFragment =
-                PermissionFragment.newInstance(permissions, Permissions.REQUEST_CODE)
+                PermissionFragment.newInstance(permissions, Permissions.REQUEST_PERMISSION_CODE)
             permissionFragment.setPermissionManager(this)
             fragmentManager.beginTransaction().add(permissionFragment, FRAGMENT_TAG)
                 .commitAllowingStateLoss()
