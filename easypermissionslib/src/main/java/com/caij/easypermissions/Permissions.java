@@ -92,7 +92,7 @@ public class Permissions {
         return new Permissions(fragmentActivity);
     }
 
-    public Permissions permission(String... permissions) {
+    public Permissions permissions(String... permissions) {
         this.permissions = permissions;
         return this;
     }

@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void request() {
         Permissions.with(this)
-                .permission(perms)
+                .permissions(perms)
                 .showReasonBeforeRequest()
                 .request(new PermissionListener() {
                     @Override
