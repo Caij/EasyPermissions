@@ -56,6 +56,7 @@ class DefaultPermissionDialog : PermissionDialog {
         val tvMessage = contentView.findViewById<TextView>(R.id.messageText)
         tvMessage.text = "你请求的权限已被拒绝并不再提示，请到设置中手动开启"
         val accentColor = getAccentColor(fragmentActivity)
+        val tempSet = HashSet<String>()
         for (permission in permissions) {
             val view = LayoutInflater.from(fragmentActivity)
                 .inflate(R.layout.permission_item, linearLayout, false)
@@ -83,11 +84,17 @@ class DefaultPermissionDialog : PermissionDialog {
                     }
                 }
                 val groupInfo = pm.getPermissionGroupInfo(permissionGroup!!, 0)
+
+                if (tempSet.contains(permissionGroup)) {
+                    continue
+                }
+
                 textView.text = fragmentActivity.getText(groupInfo.labelRes)
                 imageView.setImageResource(groupInfo.icon)
                 if (accentColor != -1) {
                     imageView.imageTintList = ColorStateList.valueOf(accentColor)
                 }
+                tempSet.add(permissionGroup)
             } catch (t: Throwable) {
                 t.printStackTrace()
             }
