@@ -18,6 +18,7 @@
         android:layout_gravity="center_vertical"
         android:layout_marginStart="10dp"
         android:layout_marginLeft="10dp"
+        android:textColor="?android:textColorPrimary"
         android:textSize="16sp" />
 
 </LinearLayout>
