@@ -23,8 +23,11 @@ class DefaultPermissionDialog : PermissionDialog {
         okClickListener: DialogInterface.OnClickListener,
         cancelClickListener: DialogInterface.OnClickListener
     ) {
+        val contentView = createContentView(fragmentActivity, permissions)
+        val tvMessage = contentView.findViewById<TextView>(R.id.messageText)
+        tvMessage.text = "该功能需要这些权限才能继续使用。"
         val dialog = AlertDialog.Builder(fragmentActivity)
-            .setView(createContentView(fragmentActivity, permissions))
+            .setView(contentView)
             .setPositiveButton("允许", okClickListener)
             .setNegativeButton("拒绝", cancelClickListener)
             .create()
@@ -38,8 +41,11 @@ class DefaultPermissionDialog : PermissionDialog {
         okClickListener: DialogInterface.OnClickListener,
         cancelClickListener: DialogInterface.OnClickListener
     ) {
+        val contentView = createContentView(fragmentActivity, permissions)
+        val tvMessage = contentView.findViewById<TextView>(R.id.messageText)
+        tvMessage.text = "你请求的权限已被拒绝并不再提示，请到设置中手动开启。"
         val dialog = AlertDialog.Builder(fragmentActivity)
-            .setView(createContentView(fragmentActivity, permissions))
+            .setView(contentView)
             .setPositiveButton("去设置", okClickListener)
             .setNegativeButton("拒绝", cancelClickListener)
             .create()
@@ -53,8 +59,6 @@ class DefaultPermissionDialog : PermissionDialog {
             .inflate(R.layout.permission_default_dialog_layout, null)
         val linearLayout =
             contentView.findViewById<LinearLayout>(R.id.permissionsLayout)
-        val tvMessage = contentView.findViewById<TextView>(R.id.messageText)
-        tvMessage.text = "你请求的权限已被拒绝并不再提示，请到设置中手动开启"
         val accentColor = getAccentColor(fragmentActivity)
         val tempSet = HashSet<String>()
         for (permission in permissions) {
@@ -100,7 +104,7 @@ class DefaultPermissionDialog : PermissionDialog {
             }
             linearLayout.addView(view)
         }
-        return contentView;
+        return contentView
     }
 
     private fun getAccentColor(activity: Activity): Int {

@@ -22,19 +22,19 @@ dependencies {
 ## Usage
 
 ```java
- Permissions.with(this)
-            .permission(perms)
-            .showReasonBeforeRequest()
-            .request(new PermissionListener() {
-                 @Override
-                 public void onRequestPermissionsResult(boolean allGranted, @NonNull List<String> grantResults, @NonNull List<String> deniedResults) {
-                     if (allGranted) {
-                         Toast.makeText(MainActivity.this, "同意", Toast.LENGTH_LONG).show();
-                     } else {
-                         Toast.makeText(MainActivity.this, "拒绝", Toast.LENGTH_LONG).show();
-                     }
-                 }
-             });
+Permissions.with(this)
+                .permissions(perms)
+                .showReasonBeforeRequest()
+                .request(new PermissionListener() {
+                    @Override
+                    public void onRequestPermissionsResult(boolean allGranted, @NonNull List<String> grantResults, @NonNull List<String> deniedResults) {
+                        if (allGranted) {
+                            Toast.makeText(MainActivity.this, "同意", Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "拒绝", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
 ```
 
 # License
