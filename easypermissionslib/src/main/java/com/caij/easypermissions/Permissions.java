@@ -44,6 +44,7 @@ public class Permissions {
 
     static final int REQUEST_PERMISSION_CODE = 1013;
     static final int REQUEST_SETTING = 1011;
+    static final int REQUEST_STORAGE_MANAGER = 1014;
 
     String[] permissions;
     int showReasonType = SHOW_REASON_TYPE_NONE;
@@ -131,7 +132,20 @@ public class Permissions {
             permissionDialog = new DefaultPermissionDialog();
         }
 
-        PermissionManager permissionManager = new PermissionManager(this);
+        BasePermissionManager permissionManager = null;
+        for (String permission : permissions) {
+            if (permission.equals(ManageExternalStoragePermissionManager.MANAGE_EXTERNAL_STORAGE)) {
+                if (permissions.length == 1) {
+                    permissionManager = new ManageExternalStoragePermissionManager(this);
+                } else {
+                    throw new RuntimeException("Special Permissions only support one");
+                }
+                break;
+            }
+        }
+        if (permissionManager == null) {
+            permissionManager = new PermissionManager(this);
+        }
         permissionManager.request();
     }
 

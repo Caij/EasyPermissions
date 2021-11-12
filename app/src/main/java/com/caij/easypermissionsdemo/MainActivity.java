@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    String[] perms = new String[]{Manifest.permission.CAMERA};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,12 +23,13 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.tv).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                request();
+                request2();
             }
         });
     }
 
     private void request() {
+        String[] perms = new String[]{Manifest.permission.CAMERA};
         Permissions.with(this)
                 .permissions(perms)
                 .showReasonBeforeRequest()
@@ -45,4 +45,21 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+
+    private void request2() {
+        String[] perms = new String[]{Manifest.permission.MANAGE_EXTERNAL_STORAGE};
+        Permissions.with(this)
+                .permissions(perms)
+                .showReasonAfterRequest()
+                .request(new PermissionListener() {
+                    @Override
+                    public void onRequestPermissionsResult(boolean allGranted, @NonNull List<String> grantResults, @NonNull List<String> deniedResults) {
+                        if (allGranted) {
+                            Toast.makeText(MainActivity.this, "同意", Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "拒绝", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+    }
 }

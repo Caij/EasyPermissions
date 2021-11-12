@@ -1,108 +1,53 @@
 package com.caij.easypermissions
 
 import android.content.DialogInterface
+import android.content.Intent
 import android.content.pm.PackageManager
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import java.util.*
+import android.net.Uri
+import android.provider.Settings
+import java.util.ArrayList
 
-class PermissionManager(permissions: Permissions) {
+class PermissionManager(permissions: Permissions) : BasePermissionManager(permissions) {
 
-    private val FRAGMENT_TAG = "permission_fragment_tag"
+    var isRequestedAfterToSettingOnAskNever: Boolean = false
 
-    private val permissions: Array<String> = permissions.permissions
-    private val showReasonType = permissions.showReasonType
-    private val permissionListener: PermissionListener = permissions.permissionListener
-    private val fragmentActivity: FragmentActivity = permissions.fragmentActivity
-    private val permissionDialog: PermissionDialog = permissions.permissionDialog
-
-    var isRequestAfterToSetting: Boolean = false
-
-    private var fragment: Fragment? = null
-
-    private fun requestPermission() {
+    override fun request() {
         when (showReasonType) {
-            Permissions.SHOW_REASON_TYPE_BEFORE -> {
-                isRequestAfterToSetting = Permissions.askNever(fragmentActivity, permissions)
-                showReasonDialogPre()
-            }
-            Permissions.SHOW_REASON_TYPE_NONE -> {
-                isRequestAfterToSetting = Permissions.askNever(fragmentActivity, permissions)
-                toRequest()
-            }
-            else -> {
-                toRequest()
+            Permissions.SHOW_REASON_TYPE_BEFORE, Permissions.SHOW_REASON_TYPE_NONE -> {
+                isRequestedAfterToSettingOnAskNever = Permissions.askNever(fragmentActivity, permissions)
             }
         }
+        super.request()
     }
 
-    private fun showReasonDialogPre() {
-        permissionDialog.showReason(
-            fragmentActivity,
-            permissions,
-            DialogInterface.OnClickListener { _, _ ->
-                toRequest()
-            },
-            DialogInterface.OnClickListener { _, _ -> finish() })
+    override fun toRequest() {
+        toFragmentRequest(Permissions.REQUEST_PERMISSION_CODE)
     }
 
-    private fun showReasonDialogPermissionRationale() {
-        permissionDialog.showReason(
-            fragmentActivity,
-            permissions,
-            DialogInterface.OnClickListener { _, _ -> toSetting() },
-            DialogInterface.OnClickListener { _, _ -> finish() })
+    override fun afterRequestReasonDialogOkClick() {
+        if (Permissions.askNever(fragmentActivity, permissions)) {
+            toSetting()
+        } else {
+            toRequest()
+        }
     }
 
     private fun toSetting() {
-        val fragmentManager =
-            fragmentActivity.supportFragmentManager
-        fragment =
-            fragmentManager.findFragmentByTag(FRAGMENT_TAG)
-        if (fragment is PermissionFragment) {
-            (fragment as PermissionFragment).arguments = PermissionFragment.newArgs(permissions, Permissions.REQUEST_SETTING)
-            (fragment as PermissionFragment).setPermissionManager(this)
-            (fragment as PermissionFragment).forwardToSettings()
-        } else {
-            val permissionFragment =
-                PermissionFragment.newInstance(permissions, Permissions.REQUEST_SETTING)
-            permissionFragment.setPermissionManager(this)
-            fragmentManager.beginTransaction().add(permissionFragment, FRAGMENT_TAG)
-                .commitAllowingStateLoss()
+        toFragmentRequest(Permissions.REQUEST_SETTING)
+    }
+
+    override fun requestPermissionType(permissionFragment: PermissionFragment, requestCode: Int) {
+        if (requestCode == Permissions.REQUEST_PERMISSION_CODE) {
+            permissionFragment.requestPermissions(permissions, requestCode)
+        } else if (requestCode == Permissions.REQUEST_SETTING) {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            val uri = Uri.fromParts("package", fragmentActivity.packageName, null)
+            intent.data = uri
+            permissionFragment.startActivityForResult(intent, Permissions.REQUEST_SETTING)
         }
     }
 
-    fun request() {
-        if (Permissions.hasPermissions(fragmentActivity, *permissions)) {
-            permissionListener.onRequestPermissionsResult(
-                true,
-                emptyList(),
-                listOf(*permissions)
-            )
-        } else {
-            requestPermission()
-        }
-    }
-
-    private fun toRequest() {
-        val fragmentManager =
-            fragmentActivity.supportFragmentManager
-
-        fragment = fragmentManager.findFragmentByTag(FRAGMENT_TAG)
-        if (fragment is PermissionFragment) {
-            (fragment as PermissionFragment).arguments = PermissionFragment.newArgs(permissions, Permissions.REQUEST_PERMISSION_CODE)
-            (fragment as PermissionFragment).setPermissionManager(this)
-            (fragment as PermissionFragment).requestPermissions()
-        } else {
-            val permissionFragment =
-                PermissionFragment.newInstance(permissions, Permissions.REQUEST_PERMISSION_CODE)
-            permissionFragment.setPermissionManager(this)
-            fragmentManager.beginTransaction().add(permissionFragment, FRAGMENT_TAG)
-                .commitAllowingStateLoss()
-        }
-    }
-
-    fun onRequestPermissionsResult(
+    override fun onRequestPermissionsResult(
         permissions: Array<String>,
         grantResults: IntArray) {
         val granted: MutableList<String> = ArrayList(permissions.size)
@@ -120,15 +65,15 @@ class PermissionManager(permissions: Permissions) {
             finish(isAllGranted, granted, denied)
         } else {
             if (showReasonType == Permissions.SHOW_REASON_TYPE_AFTER) {
-                showReasonDialogAfter()
+                showAfterRequestReasonDialog()
             } else if (showReasonType == Permissions.SHOW_REASON_TYPE_BEFORE) {
-                if (isRequestAfterToSetting && Permissions.askNever(fragmentActivity, permissions)) {
+                if (isRequestedAfterToSettingOnAskNever && Permissions.askNever(fragmentActivity, permissions)) {
                     showSettingDialog()
                 } else {
                     finish(isAllGranted, granted, denied)
                 }
             } else if (showReasonType == Permissions.SHOW_REASON_TYPE_NONE) {
-                if (isRequestAfterToSetting && Permissions.askNever(fragmentActivity, permissions)) {
+                if (isRequestedAfterToSettingOnAskNever && Permissions.askNever(fragmentActivity, permissions)) {
                     showSettingDialog()
                 } else {
                     finish(isAllGranted, granted, denied)
@@ -137,6 +82,10 @@ class PermissionManager(permissions: Permissions) {
                 finish(isAllGranted, granted, denied)
             }
         }
+    }
+
+    override fun hasPermissions(): Boolean {
+        return Permissions.hasPermissions(fragmentActivity, *permissions)
     }
 
     private fun showSettingDialog() {
@@ -149,33 +98,11 @@ class PermissionManager(permissions: Permissions) {
             DialogInterface.OnClickListener { _, _ -> finish() })
     }
 
-    private fun showReasonDialogAfter() {
-        permissionDialog.showReason(
-            fragmentActivity,
-            permissions,
-            DialogInterface.OnClickListener { _, _ ->
-                if (Permissions.askNever(fragmentActivity, permissions)) {
-                    toSetting()
-                } else {
-                    toRequest()
-                }
-            },
-            DialogInterface.OnClickListener { _, _ -> finish() })
+    override fun onSettingActivityResult(requestCode: Int) {
+        finish()
     }
 
-    private fun finish(
-        isAllGranted: Boolean,
-        granted: MutableList<String>,
-        denied: MutableList<String>
-    ) {
-        permissionListener.onRequestPermissionsResult(isAllGranted, granted, denied)
-        if (fragment != null) {
-            fragmentActivity.supportFragmentManager.beginTransaction().remove(fragment!!)
-                .commitAllowingStateLoss()
-        }
-    }
-
-    private fun finish() {
+    override fun finish() {
         val granted: MutableList<String> = ArrayList(permissions.size)
         val denied: MutableList<String> = ArrayList(permissions.size)
         for (i in permissions.indices) {
@@ -189,9 +116,4 @@ class PermissionManager(permissions: Permissions) {
         val isAllGranted = granted.size == permissions.size
         finish(isAllGranted, granted, denied)
     }
-
-    fun onSettingUpdate() {
-        finish()
-    }
-
 }

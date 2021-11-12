@@ -93,7 +93,11 @@ class DefaultPermissionDialog : PermissionDialog {
                     continue
                 }
 
-                textView.text = fragmentActivity.getText(groupInfo.labelRes)
+                if (ManageExternalStoragePermissionManager.MANAGE_EXTERNAL_STORAGE == permission) {
+                    textView.setText(R.string.manage_external_storage)
+                } else{
+                    textView.text = fragmentActivity.getText(groupInfo.labelRes)
+                }
                 imageView.setImageResource(groupInfo.icon)
                 if (accentColor != -1) {
                     imageView.imageTintList = ColorStateList.valueOf(accentColor)
