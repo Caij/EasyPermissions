@@ -9,6 +9,22 @@ artifacts {
     archives sourceJar
 }
 
+Properties properties = new Properties()
+File file = project.rootProject.file('local.properties')
+def userName = ""
+def password = ""
+def repositoryUrl=""
+def snapshotRepositoryUrl=""
+if (file.exists()) {
+    InputStream inputStream = file.newDataInputStream() ;
+    properties.load(inputStream)
+    inputStream.close()
+    userName = properties.getProperty("userName")
+    password = properties.getProperty("password")
+    repositoryUrl = properties.getProperty("repositoryUrl")
+    snapshotRepositoryUrl = properties.getProperty("snapshotRepositoryUrl")
+}
+
 uploadArchives {
     repositories {
         mavenDeployer {
