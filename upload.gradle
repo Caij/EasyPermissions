@@ -1,0 +1,38 @@
+apply plugin: 'maven'
+
+task sourceJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier "sources"
+}
+
+artifacts {
+    archives sourceJar
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "$repositoryUrl"){
+                authentication(userName: "$userName", password: "$password")
+            }
+
+            snapshotRepository(url: "$snapshotRepositoryUrl") {
+                authentication(userName: "$userName", password: "$password")
+            }
+
+            project.afterEvaluate {
+                def versionName = "${android.defaultConfig.versionName}"
+                pom.version = versionName
+                pom.artifactId = "$project.name"
+                def path = project.getPath()
+                if (path.replace(":", "") != "$project.name") {
+                    def childPath = path.replaceAll("$project.name", "").replaceAll(":", "")
+                    pom.groupId = "com.caij.lib" + "." + childPath
+                    println("childPath:" + pom.groupId)
+                } else {
+                    pom.groupId = "com.caij.lib"
+                }
+            }
+        }
+    }
+}
