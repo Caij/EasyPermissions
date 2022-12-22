@@ -7,15 +7,8 @@ makes Android runtime permission request extremely easy
 ## Setup
 
 ```gradle
-allprojects {
-    repositories {
-        ...
-        maven { url 'https://jitpack.io' }
-    }
-}
-
 dependencies {
-    implementation 'com.github.Caij:EasyPermissions:last.release.version'
+    implementation 'io.github.caij:EasyPermissions:3.1.1'
 }
 ```
 
