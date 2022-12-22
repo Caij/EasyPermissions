@@ -1,54 +1,96 @@
-apply plugin: 'maven'
-
-task sourceJar(type: Jar) {
+task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier "sources"
+    classifier 'sources'
 }
 
-artifacts {
-    archives sourceJar
-}
+//task javadoc(type: Javadoc) {
+//    source android.sourceSets.main.java.srcDirs
+//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+//}
 
+//task javadocJar(type: Jar, dependsOn: javadoc) {
+//    classifier 'javadoc'
+//    from javadoc.destinationDir
+//}
+
+File localPropertiesFile = new File(rootDir.getAbsolutePath() + "/local.properties")
 Properties properties = new Properties()
-File file = project.rootProject.file('local.properties')
-def userName = ""
-def password = ""
-def repositoryUrl=""
-def snapshotRepositoryUrl=""
-if (file.exists()) {
-    InputStream inputStream = file.newDataInputStream() ;
-    properties.load(inputStream)
-    inputStream.close()
-    userName = properties.getProperty("userName")
-    password = properties.getProperty("password")
-    repositoryUrl = properties.getProperty("repositoryUrl")
-    snapshotRepositoryUrl = properties.getProperty("snapshotRepositoryUrl")
-}
+properties.load(localPropertiesFile.newDataInputStream())
+def mavenCenterUsername = properties.getProperty('mavenCenterUsername', "")
+def mavenCenterPassword = properties.getProperty('mavenCenterPassword', "")
+def mavenCenterRepoUrl = properties.getProperty('mavenCenterRepoUrl', "")
+def privateRepoUrl = properties.getProperty('privateRepoUrl', "")
+def privateRepoUserName = properties.getProperty('privateRepoUserName', "")
+def privateRepoPassword = properties.getProperty('privateRepoPassword', "")
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: "$repositoryUrl"){
-                authentication(userName: "$userName", password: "$password")
-            }
+def versionName = android.defaultConfig.versionName
 
-            snapshotRepository(url: "$snapshotRepositoryUrl") {
-                authentication(userName: "$userName", password: "$password")
-            }
+publishing {
+    publications {
+        maven(MavenPublication) {
 
-            project.afterEvaluate {
-                def versionName = "${android.defaultConfig.versionName}"
-                pom.version = versionName
-                pom.artifactId = "$project.name"
-                def path = project.getPath()
-                if (path.replace(":", "") != "$project.name") {
-                    def childPath = path.replaceAll("$project.name", "").replaceAll(":", "")
-                    pom.groupId = "com.caij.lib" + "." + childPath
-                    println("childPath:" + pom.groupId)
-                } else {
-                    pom.groupId = "com.caij.lib"
+            artifact sourcesJar
+//            artifact javadocJar
+
+            pom {
+                name = 'EasyPermissions'
+                description = 'EasyPermissions'
+                url = 'https://github.com/Caij/EasyPermissions'
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
                 }
+
+                developers {
+                    developer {
+                        id = 'caij'
+                        name = 'caij'
+                        email = 'dev.caij@gmail.com'
+                    }
+                }
+
+                scm {
+                    connection = 'https://github.com/Caij/EasyPermissions.git'
+                    developerConnection = 'https://github.com/Caij/EasyPermissions.git'
+                    url = 'https://github.com/Caij/EasyPermissions'
+                }
+            }
+
+
+
+            groupId "io.github.caij"
+            artifactId "EasyPermissions"
+            version versionName
+
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url mavenCenterRepoUrl
+            credentials {
+                username mavenCenterUsername // ossrhUsername is your sonatype username
+                password mavenCenterPassword // ossrhUsername is your sonatype password
+            }
+        }
+        maven {
+            url privateRepoUrl
+            credentials {
+                username privateRepoUserName // ossrhUsername is your sonatype username
+                password privateRepoPassword // ossrhUsername is your sonatype password
             }
         }
     }
 }
+
+// signing, this need key, secret, we put it into gradle.properties
+signing {
+    sign publishing.publications.maven
+}
+
